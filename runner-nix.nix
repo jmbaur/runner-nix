@@ -1,7 +1,4 @@
-{ rustPlatform
-, systemdMinimal
-, pkg-config
-}:
+{ rustPlatform, pkg-config, systemdMinimal }:
 rustPlatform.buildRustPackage {
   pname = "runner-nix";
   version = "0.1.0";

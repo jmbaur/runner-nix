@@ -1,9 +1,10 @@
 {
-  description = "runner.nix";
+  description = "runner-nix";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
+    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
   };
 
   outputs = inputs: with inputs; {
