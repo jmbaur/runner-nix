@@ -31,11 +31,12 @@ async fn main() -> anyhow::Result<()> {
         1..=10 => fds
             .iter()
             .map(|fd| {
-                let std_listener = daemon::tcp_listener(fd).unwrap();
-                std_listener.set_nonblocking(true).unwrap();
-                let listener = TcpListener::from_std(std_listener).unwrap();
-                Box::pin(async move { listener.accept().await })
+                let std_listener = daemon::tcp_listener(fd)?;
+                std_listener.set_nonblocking(true)?;
+                TcpListener::from_std(std_listener)
             })
+            .filter(|x| x.is_ok())
+            .map(|listener| Box::pin(async move { listener?.accept().await }))
             .collect(),
         11..=i32::MAX => anyhow::bail!("got too many systemd sockets"),
     };
