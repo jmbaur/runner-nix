@@ -41,7 +41,7 @@ inputs: with inputs;
             '';
           };
           adapter = mkOption {
-            type = types.enum [ "none" ];
+            type = types.enum [ "none" "github" ];
             description = ''
               The adapter to use to authenticate the request and set the
               environment.
@@ -102,8 +102,7 @@ inputs: with inputs;
           type = with types; attrsOf (submodule runSubmodule);
           example = {
             hello = {
-              listenAddresses = [ "[::1]:8080" ];
-              adapter = "none";
+              adapter = "github";
               command = "${pkgs.hello}/bin/hello";
             };
           };

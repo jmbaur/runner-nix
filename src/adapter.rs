@@ -1,37 +1,39 @@
-use async_trait::async_trait;
-use hyper::server::conn::Http;
-use hyper::service::service_fn;
-use hyper::{Body, Request, Response};
-use tokio::net::TcpStream;
+use anyhow::Result;
+use hmac::{Hmac, Mac};
+use hyper::{body, Body, Request};
+use sha2::Sha256;
+use std::env;
 
-pub fn get_adapter(adapter_string: String) -> Option<Box<dyn Adapter>> {
-    match adapter_string.as_str() {
-        "none" => Some(Box::new(NoneAdapter {})),
-        _ => None,
-    }
-}
+#[derive(Clone, Copy, Debug)]
+pub struct Environment;
 
-#[async_trait]
-pub trait Adapter {
-    async fn authenticate(&self, stream: TcpStream) -> anyhow::Result<bool>;
-    async fn setup_environment(&self) -> anyhow::Result<()>;
-}
+type HmacSha256 = Hmac<Sha256>;
 
-pub struct NoneAdapter {}
+// https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#push
+pub async fn github(req: Request<Body>) -> Result<(bool, Option<Environment>)> {
+    let (parts, body) = req.into_parts();
+    let authenticated = match (
+        parts.headers.get("User-Agent"),
+        parts.headers.get("X-GitHub-Event"),
+        parts.headers.get("X-GitHub-Delivery"),
+        parts.headers.get("X-Hub-Signature-256"),
+    ) {
+        (Some(user_agent), Some(github_event), Some(github_delivery), Some(hub_signature)) => {
+            if !user_agent.to_str()?.starts_with("GitHub-Hookshot/") {
+                false
+            } else {
+                println!("EVENT: {}", github_event.to_str()?);
+                println!("DELIVERY: {}", github_delivery.to_str()?);
 
-async fn simple_response(_: Request<Body>) -> Result<Response<Body>, hyper::Error> {
-    Ok(Response::new(Body::from("OK")))
-}
+                let github_hmac_secret = env::var("GITHUB_HMAC_SECRET")?;
+                let mut mac = HmacSha256::new_from_slice(github_hmac_secret.as_bytes())?;
+                mac.update(&body::to_bytes(body).await?);
 
-#[async_trait]
-impl Adapter for NoneAdapter {
-    async fn authenticate(&self, _stream: TcpStream) -> anyhow::Result<bool> {
-        Http::new()
-            .serve_connection(_stream, service_fn(simple_response))
-            .await?;
-        Ok(true)
-    }
-    async fn setup_environment(&self) -> anyhow::Result<()> {
-        Ok(())
-    }
+                mac.verify_slice(hub_signature.as_bytes()).is_ok()
+            }
+        }
+        _ => false,
+    };
+
+    Ok((authenticated, None))
 }
