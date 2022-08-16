@@ -73,7 +73,8 @@ inputs: with inputs;
             documentation = [ "https://github.com/jmbaur/runner-nix" ];
             path = [ pkgs.bash ];
             serviceConfig = {
-              DynamicUser = "yes";
+              User = cfg.user;
+              Group = cfg.group;
               ExecStart = "${pkgs.runner-nix}/bin/runner-nix --adapter ${runCfg.adapter} --command '${runCfg.command}'";
             };
           };
@@ -83,6 +84,20 @@ inputs: with inputs;
     {
       options.services.runner = {
         enable = mkEnableOption "runner service";
+        user = mkOption {
+          type = types.str;
+          default = "runner";
+          description = ''
+            The user that the runner service will run under.
+          '';
+        };
+        group = mkOption {
+          type = types.str;
+          default = "runner";
+          description = ''
+            The group that the runner service will run under.
+          '';
+        };
         runs = mkOption {
           type = with types; attrsOf (submodule runSubmodule);
           example = {
@@ -96,6 +111,14 @@ inputs: with inputs;
 
       config = lib.mkIf cfg.enable {
         nixpkgs.overlays = [ self.overlays.default ];
+
+        users.users.${cfg.user} = {
+          isSystemUser = true;
+          home = "/var/lib/${cfg.user}";
+          createHome = true;
+          group = cfg.group;
+        };
+        users.groups.${cfg.group} = { };
 
         systemd.sockets = lib.mapAttrs'
           (name: units: lib.nameValuePair "runner@${name}" units.socket)
