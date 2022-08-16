@@ -41,7 +41,7 @@ inputs: with inputs;
             '';
           };
           adapter = mkOption {
-            type = types.enum [ "none" ];
+            type = types.enum [ "none" "github" ];
             description = ''
               The adapter to use to authenticate the request and set the
               environment.
@@ -72,7 +72,11 @@ inputs: with inputs;
             description = "runner-nix run ${name}";
             documentation = [ "https://github.com/jmbaur/runner-nix" ];
             path = [ pkgs.bash ];
-            serviceConfig.ExecStart = "${pkgs.runner-nix}/bin/runner-nix --adapter ${runCfg.adapter} --command '${runCfg.command}'";
+            serviceConfig = {
+              User = cfg.user;
+              Group = cfg.group;
+              ExecStart = "${pkgs.runner-nix}/bin/runner-nix --adapter ${runCfg.adapter} --command '${runCfg.command}'";
+            };
           };
         })
         cfg.runs;
@@ -80,12 +84,25 @@ inputs: with inputs;
     {
       options.services.runner = {
         enable = mkEnableOption "runner service";
+        user = mkOption {
+          type = types.str;
+          default = "runner";
+          description = ''
+            The user that the runner service will run under.
+          '';
+        };
+        group = mkOption {
+          type = types.str;
+          default = "runner";
+          description = ''
+            The group that the runner service will run under.
+          '';
+        };
         runs = mkOption {
           type = with types; attrsOf (submodule runSubmodule);
           example = {
             hello = {
-              listenAddresses = [ "[::1]:8080" ];
-              adapter = "none";
+              adapter = "github";
               command = "${pkgs.hello}/bin/hello";
             };
           };
@@ -94,6 +111,12 @@ inputs: with inputs;
 
       config = lib.mkIf cfg.enable {
         nixpkgs.overlays = [ self.overlays.default ];
+
+        users.users.${cfg.user} = {
+          isSystemUser = true;
+          group = cfg.group;
+        };
+        users.groups.${cfg.group} = { };
 
         systemd.sockets = lib.mapAttrs'
           (name: units: lib.nameValuePair "runner@${name}" units.socket)
