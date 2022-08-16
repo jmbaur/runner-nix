@@ -35,11 +35,11 @@ async fn main() -> anyhow::Result<()> {
     let service = service_fn(move |req| {
         let mut sh = Command::new("sh");
         let command = args.command.clone();
-        let adapter = args.adapter.clone();
+        let adp = args.adapter.clone();
         async move {
-            if let Ok((authenticated, environment)) = match adapter.as_str() {
+            if let Ok((authenticated, env)) = match adp.as_str() {
                 "none" => Ok((true, None)),
-                "github" => adapter::github(req).await,
+                "github" => adapter::github::auth_and_env(req).await,
                 _ => Ok((false, None)),
             } {
                 if !authenticated {
@@ -53,8 +53,10 @@ async fn main() -> anyhow::Result<()> {
                     tokio::spawn(async move {
                         let mut cmd = sh.arg("-c");
                         cmd = cmd.arg(command);
-                        if let Some(env) = environment {
-                            println!("{:#?}", env)
+                        if let Some(e) = env {
+                            cmd = cmd.env("RUN_REF", e.ref_field.clone());
+                            cmd = cmd.env("RUN_URL", e.url.clone());
+                            println!("{:#?}", e);
                         }
                         if let Ok(mut run) = cmd.spawn() {
                             _ = run.wait();
