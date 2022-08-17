@@ -2,9 +2,11 @@ use crate::adapter::env::RunnerEnv;
 use anyhow;
 use hmac::{Hmac, Mac};
 use hyper::{body, Body, Request};
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::Sha256;
+use std::env::var;
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -20,20 +22,38 @@ pub async fn auth_and_env(req: Request<Body>) -> anyhow::Result<(bool, Option<Ru
     ) {
         (Some(user_agent), Some(github_event), Some(github_delivery), Some(hub_signature)) => {
             if !user_agent.to_str()?.starts_with("GitHub-Hookshot/") {
+                error!("invalid github user agent string");
                 false
             } else {
-                println!("EVENT: {}", github_event.to_str()?);
-                println!("DELIVERY: {}", github_delivery.to_str()?);
+                debug!("github event: {:?}", github_event);
+                debug!("github delivery: {:?}", github_delivery);
+                debug!("github signature: {:?}", hub_signature);
 
-                let github_hmac_secret = std::env::var("GITHUB_HMAC_SECRET")?;
+                let github_hmac_secret = var("GITHUB_HMAC_SECRET")?;
                 let mut mac = HmacSha256::new_from_slice(github_hmac_secret.as_bytes())?;
                 mac.update(&entire_body);
 
-                mac.verify_slice(hub_signature.as_bytes()).is_ok()
+                match mac.verify_slice(hub_signature.as_bytes()) {
+                    Ok(_) => {
+                        info!("github hmac content verification passed");
+                        true
+                    }
+                    Err(e) => {
+                        error!("github hmac content verification failed: {e}");
+                        false
+                    }
+                }
             }
         }
-        _ => false,
+        _ => {
+            error!("github headers not found");
+            false
+        }
     };
+
+    if !authenticated {
+        return Ok((authenticated, None));
+    }
 
     let payload: GitHubPayload = serde_json::from_slice(&entire_body)?;
 

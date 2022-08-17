@@ -15,6 +15,7 @@ inputs: with inputs; flake-utils.lib.eachDefaultSystemMap (system:
           nixpkgs-fmt.enable = true;
         };
       }) shellHook;
+      RUST_LOG = "debug";
       buildInputs = with pkgs; [
         cargo
         rustc
