@@ -69,7 +69,7 @@
       })
   //
   {
-    nixosModules.default = import ./module.nix;
+    nixosModules = import ./nixosModules.nix inputs;
     overlays.default = _: prev: { runner-nix = prev.callPackage ./. { }; };
   };
 }
