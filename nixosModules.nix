@@ -85,7 +85,7 @@ inputs: with inputs;
             serviceConfig = {
               User = cfg.user;
               Group = cfg.group;
-              ExecStart = "${pkgs.runner-nix}/bin/runner-nix --adapter ${runCfg.adapter} --command '${runCfg.command}'";
+              ExecStart = "${pkgs.runner-nix}/bin/runner-nix --adapter ${runCfg.adapter} --command ${lib.escapeShellArg runCfg.command}";
             };
           };
         })
