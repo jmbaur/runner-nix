@@ -71,7 +71,7 @@ pub async fn auth_and_env(req: Request<Body>) -> anyhow::Result<(bool, Option<Ru
 }
 
 // https://transform.tools/json-to-rust-serde
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GitHubPayload {
     #[serde(rename = "ref")]
@@ -92,7 +92,7 @@ pub struct GitHubPayload {
     pub sender: Sender,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HeadCommit {
     pub id: String,
@@ -109,7 +109,7 @@ pub struct HeadCommit {
     pub modified: Vec<Value>,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Author {
     pub name: String,
@@ -117,7 +117,7 @@ pub struct Author {
     pub username: String,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Committer {
     pub name: String,
@@ -125,7 +125,7 @@ pub struct Committer {
     pub username: String,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Repository {
     pub id: i64,
@@ -264,7 +264,7 @@ pub struct Repository {
     pub master_branch: String,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Owner {
     pub name: String,
@@ -304,14 +304,14 @@ pub struct Owner {
     pub site_admin: bool,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Pusher {
     pub name: String,
     pub email: String,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Sender {
     pub login: String,

@@ -1,7 +1,6 @@
 mod adapter;
 mod cli;
 
-use anyhow;
 use clap::Parser;
 use futures::future::select_ok;
 use hyper::{http::StatusCode, server::conn::Http, service::service_fn, Body, Response};

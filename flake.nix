@@ -34,6 +34,7 @@
         devShells.default = pkgs.mkShell {
           RUST_LOG = "debug";
           buildInputs = with pkgs; [
+            clippy
             (writeShellScriptBin "run" ''
               ${fd}/bin/fd -e rs |
                 ${entr}/bin/entr -c \
