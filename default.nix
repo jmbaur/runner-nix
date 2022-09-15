@@ -1,11 +1,14 @@
-{ rustPlatform, pkg-config, systemdMinimal }:
+{ rustPlatform
+, pkg-config
+, systemd
+, nixosTest
+, ...
+}:
 rustPlatform.buildRustPackage {
   pname = "runner-nix";
   version = "0.1.0";
   src = ./.;
-  SYSTEMD_LIB_DIR = "${systemdMinimal}/lib";
-  buildInputs = [ pkg-config ];
-  cargoLock = {
-    lockFile = ./Cargo.lock;
-  };
+  PKG_CONFIG_PATH = "${systemd.dev}/lib/pkgconfig";
+  nativeBuildInputs = [ pkg-config ];
+  cargoLock.lockFile = ./Cargo.lock;
 }
