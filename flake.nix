@@ -34,17 +34,13 @@
         devShells.default = pkgs.mkShell {
           RUST_LOG = "debug";
           buildInputs = with pkgs; [
-            clippy
             (writeShellScriptBin "run" ''
               ${fd}/bin/fd -e rs |
                 ${entr}/bin/entr -c \
                   sh -c 'cargo build && ${systemdMinimal}/bin/systemd-socket-activate -l8000 -l8080 ./target/debug/runner-nix --adapter none --command ${hello}/bin/hello'
             '')
-          ];
-          inherit (pkgs.runner-nix)
-            nativeBuildInputs
-            PKG_CONFIG_PATH
-            ;
+          ] ++ pkgs.runner-nix.buildInputs;
+          inherit (pkgs.runner-nix) nativeBuildInputs;
           inherit (preCommitCheck) shellHook;
         };
       }) // {
