@@ -40,7 +40,7 @@
             hello
             systemdMinimal
           ] ++ pkgs.runner-nix.buildInputs;
-          inherit (pkgs.runner-nix) nativeBuildInputs;
+          inherit (pkgs.runner-nix) RUSTFLAGS nativeBuildInputs;
           inherit (preCommitCheck) shellHook;
         };
       }) // {

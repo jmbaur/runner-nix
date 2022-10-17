@@ -1,4 +1,4 @@
-{ rustPlatform, systemd, pkg-config, lib, ... }:
+{ rustPlatform, llvmPackages_latest, systemd, pkg-config, lib, ... }:
 let
   cargoTOML = lib.importTOML ./Cargo.toml;
   pname = cargoTOML.package.name;
@@ -8,6 +8,7 @@ rustPlatform.buildRustPackage {
   inherit pname version;
   src = ./.;
   buildInputs = [ systemd ];
-  nativeBuildInputs = [ pkg-config ];
+  nativeBuildInputs = [ llvmPackages_latest.bintools pkg-config ];
+  RUSTFLAGS = "-C link-arg=-fuse-ld=lld";
   cargoLock.lockFile = ./Cargo.lock;
 }
