@@ -85,7 +85,7 @@ inputs: with inputs;
             serviceConfig = {
               User = cfg.user;
               Group = cfg.group;
-              ExecStart = "${pkgs.runner-nix}/bin/runner-nix --adapter ${runCfg.adapter} --command ${lib.escapeShellArg runCfg.command}";
+              ExecStart = "${cfg.package}/bin/runner-nix --adapter ${runCfg.adapter} --command ${lib.escapeShellArg runCfg.command}";
             };
           };
         })
@@ -94,6 +94,7 @@ inputs: with inputs;
     {
       options.services.runner = {
         enable = mkEnableOption "runner service";
+        package = lib.mkPackageOption pkgs "runner-nix" { };
         user = mkOption {
           type = types.str;
           default = "runner";
