@@ -34,17 +34,20 @@
         devShells.default = pkgs.mkShell {
           RUST_LOG = "debug";
           buildInputs = with pkgs; [
-            (writeShellScriptBin "run" ''
-              ${fd}/bin/fd -e rs |
-                ${entr}/bin/entr -c \
-                  sh -c 'cargo build && ${systemdMinimal}/bin/systemd-socket-activate -l8000 -l8080 ./target/debug/runner-nix --adapter none --command ${hello}/bin/hello'
-            '')
+            just
+            entr
+            fd
+            hello
+            systemdMinimal
           ] ++ pkgs.runner-nix.buildInputs;
           inherit (pkgs.runner-nix) nativeBuildInputs;
           inherit (preCommitCheck) shellHook;
         };
       }) // {
-    nixosModules = import ./nixosModules.nix inputs;
+    nixosModules.default = {
+      nixpkgs.overlays = [ self.overlays.default ];
+      imports = [ ./module.nix ];
+    };
     overlays.default = _: prev: { runner-nix = prev.callPackage ./. { }; };
   };
 }
