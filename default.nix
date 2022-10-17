@@ -1,11 +1,11 @@
-{ rustPlatform
-, systemd
-, pkg-config
-, ...
-}:
+{ rustPlatform, systemd, pkg-config, lib, ... }:
+let
+  cargoTOML = lib.importTOML ./Cargo.toml;
+  pname = cargoTOML.package.name;
+  version = cargoTOML.package.version;
+in
 rustPlatform.buildRustPackage {
-  pname = "runner-nix";
-  version = "0.1.0";
+  inherit pname version;
   src = ./.;
   buildInputs = [ systemd ];
   nativeBuildInputs = [ pkg-config ];
